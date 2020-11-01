@@ -12,6 +12,7 @@ public class GroundGrid : MonoBehaviour
     private Vector3 _cellSize;
     private Vector3 _cellPivot;
     private Vector3 _groundSize;
+
     private Vector3 _groundTopLeft;
     private Vector3 _groundTopRight;
 
@@ -72,9 +73,8 @@ public class GroundGrid : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
-
         foreach(KeyValuePair<Vector3, GroundCell> cellEntry in Cells)
         {
             cellEntry.Value.Draw();
