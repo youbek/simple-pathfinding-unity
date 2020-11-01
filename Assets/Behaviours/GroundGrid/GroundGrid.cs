@@ -1,16 +1,16 @@
-﻿using System.Collections;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
 
 public class GroundGrid : MonoBehaviour
 {
     public static GroundGrid current;
+    public float accuracy = 0.2f;
 
-    public List<GroundCell> Cells = new List<GroundCell>();
+    public ConcurrentDictionary<Vector3, GroundCell> Cells = new ConcurrentDictionary<Vector3, GroundCell>();
 
-    private Vector3 _cellSize = new Vector3(1, 1, 1);
-    private Vector3 _cellPivot = new Vector3(-0.5f, 0.0f, 0.5f);
+    private Vector3 _cellSize;
+    private Vector3 _cellPivot;
     private Vector3 _groundSize;
     private Vector3 _groundTopLeft;
     private Vector3 _groundTopRight;
@@ -24,6 +24,9 @@ public class GroundGrid : MonoBehaviour
 
     private void Start()
     {
+        _cellSize = new Vector3(accuracy, accuracy, accuracy);
+        _cellPivot = new Vector3(-accuracy / 2, 0.0f, accuracy / 2);
+
         MeshRenderer mesh = GetComponent<MeshRenderer>();
 
         _mesh = mesh;
@@ -65,21 +68,16 @@ public class GroundGrid : MonoBehaviour
 
             prevPos = pos;
 
-            Cells.Add(cell);
+            Cells.TryAdd(pos, cell);
         }
-
-        Debug.Log(Cells.Count);
     }
 
-    
     private void OnDrawGizmos()
     {
 
-        for(int i = 0; i < Cells.Count; i++)
+        foreach(KeyValuePair<Vector3, GroundCell> cellEntry in Cells)
         {
-            GroundCell cell = Cells[i];
-
-            cell.Draw();
+            cellEntry.Value.Draw();
         }
     }
 }
