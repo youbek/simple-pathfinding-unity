@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
 
 
@@ -14,12 +13,11 @@ public class GroundCell
 
     public GroundCell(Vector3 size, Vector3 pos)
     {
+        
         Size = size;
         Pos = pos;
 
         Neighbours = CalculateNeighbours();
-
-        Debug.Log(Neighbours.Count);
     }
 
     public bool IsFreeToMove()
@@ -31,15 +29,19 @@ public class GroundCell
     {
 
         Gizmos.color = new Color(0, 1, 1, 0.5f);
-        Gizmos.DrawCube(Pos, Size);
+        Gizmos.DrawWireCube(Pos, Size);
+        Gizmos.color = new Color(0, 1, 1, 1);
+        Gizmos.DrawSphere(Pos, Size.x / 4);
         Gizmos.color = Color.white;
 
-        foreach (Vector3 neighbour in Neighbours)
-        {
-            Gizmos.color = new Color(255, 255, 0);
-            Gizmos.DrawLine(Pos, neighbour);
-            Gizmos.color = Color.white;
-        }
+        /*
+            foreach (Vector3 neighbour in Neighbours)
+            {
+                Gizmos.color = new Color(255, 255, 0);
+                Gizmos.DrawLine(Pos, neighbour);
+                Gizmos.color = Color.white;
+            }
+        */
     }
 
     public List<Vector3> CalculateNeighbours()
@@ -73,5 +75,10 @@ public class GroundCell
         }
 
         return neighbours;
+    }
+
+    static public float CalculateFScore(float gScore, float hScore)
+    {
+        return gScore + hScore;
     }
 }

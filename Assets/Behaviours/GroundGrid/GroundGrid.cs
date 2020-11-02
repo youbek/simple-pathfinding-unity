@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -71,6 +72,28 @@ public class GroundGrid : MonoBehaviour
 
             Cells.TryAdd(pos, cell);
         }
+    }
+
+    public GroundCell GetCellInGrid(Vector3 pos)
+    {
+        Vector3 roundedPos = new Vector3((float)Math.Round(pos.x, 1, MidpointRounding.ToEven), 0, (float)Math.Round(pos.z, 1, MidpointRounding.ToEven));
+
+        GroundCell cell;
+
+        // IF FOUND IN THE ROUNDED POS
+        if (Cells.TryGetValue(roundedPos, out cell))
+        {
+            return cell;
+        }
+
+        // TRY TO ROUND FOR 0.5f, MAYBE OBJECT IN THE MIDDLE OF 4 CELLS.
+        roundedPos = new Vector3(roundedPos.x + 0.5f, 0, roundedPos.z + 0.5f);
+        if (Cells.TryGetValue(roundedPos, out cell))
+        {
+            return cell;
+        }
+
+        return cell;
     }
 
     private void OnDrawGizmosSelected()
