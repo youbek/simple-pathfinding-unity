@@ -3,7 +3,8 @@ using System.Collections.Generic;
 
 public class EnemyMovement : MonoBehaviour
 {
-    public Transform target;
+    public GameObject target;
+    public LayerMask obstacles;
     public float speed = 10.0f;
 
     private PathFinder _pathFinder;
@@ -13,16 +14,16 @@ public class EnemyMovement : MonoBehaviour
 
     private void Start()
     {
-        _pathFinder = new PathFinder();
-
-
+        CapsuleCollider capsuleCollider = GetComponent<CapsuleCollider>();
+        Vector3 size = new Vector3(capsuleCollider.radius * 2, capsuleCollider.height, capsuleCollider.radius * 2);
+        _pathFinder = new PathFinder(size, obstacles);
     }
 
     void Update()
     {
         if(Input.GetMouseButtonDown(0))
         {
-            _paths = _pathFinder.GetPaths(transform.position, target.position);
+            _paths = _pathFinder.GetPaths(transform.position, target);
         }
 
         if(_currentPath == _paths.Count - 1 || _paths.Count == 0)
@@ -40,9 +41,7 @@ public class EnemyMovement : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        foreach(Vector3 path in _paths)
-        {
-            Gizmos.DrawCube(path, new Vector3(1.0f, 1.0f, 1.0f));
-        }
+        if(_pathFinder != null)
+            _pathFinder.DrawVisuals();
     }
 }
