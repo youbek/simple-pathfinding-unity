@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 
 public class PathFinder
 {
@@ -12,6 +9,7 @@ public class PathFinder
     private List<Vector3> _openList = new List<Vector3>();
     private List<Vector3> _closedList = new List<Vector3>();
     private List<Vector3> _lastPath = new List<Vector3>();
+    private Dictionary<Vector3, (float g, float h, float f)> _scores = new Dictionary<Vector3, (float g, float h, float f)>();
 
     private LayerMask _obstacles;
 
@@ -21,28 +19,22 @@ public class PathFinder
         _obstacles = obstacles;
     }
 
-    public void DrawVisuals()
+    public void DrawVisuals(bool showScoreLabels)
     {
 
         foreach(Vector3 NodePos in _openList)
         {
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(NodePos, 0.1f);
-            Gizmos.color = Color.white;
+            Node.DrawVisual(NodePos, _scores[NodePos], Color.green, showScoreLabels);
         }
 
         foreach(Vector3 NodePos in _closedList)
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(NodePos, 0.1f);
-            Gizmos.color = Color.white;
+            Node.DrawVisual(NodePos, _scores[NodePos], Color.red, showScoreLabels);
         }
 
         foreach (Vector3 NodePos in _lastPath)
         {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawSphere(NodePos, 0.1f);
-            Gizmos.color = Color.white;
+            Node.DrawVisual(NodePos, _scores[NodePos], Color.yellow, showScoreLabels);
         }
     }
 
@@ -55,18 +47,16 @@ public class PathFinder
         _openList = new List<Vector3>();
         _closedList = new List<Vector3>();
 
-        Dictionary<Vector3, (float g, float h, float f)> scores = new Dictionary<Vector3, (float g, float h, float f)>();
+        _scores = new Dictionary<Vector3, (float g, float h, float f)>();
         Dictionary<Vector3, Vector3> cameFrom = new Dictionary<Vector3, Vector3>(); // KEY: WHERE NOW, VALUE: WHERE CAME FROM TO THAT KEY POSITION
 
-        scores[startingNode.Pos] = (0, 0, 0);
+        _scores[startingNode.Pos] = (0, 0, 0);
         _openList.Add(startPos);
 
-        int maxItiration = 1000;
-        int currentItiration = 0;
 
-        while(_openList.Count > 0 && currentItiration < maxItiration)
+
+        while(_openList.Count > 0)
         {
-            currentItiration++;
             Node current = new Node(_size, _openList[0], _obstacles);
 
             if (current != startingNode)
@@ -74,8 +64,14 @@ public class PathFinder
                 foreach (Vector3 nodePos in _openList)
                 {
                     // TRY TO PICK LOWEST F SCORE
-                    // IF SAME F SCORE THEN CHECK PICK ONE WITH LOWEST H
-                    if (scores[nodePos].f < scores[current.Pos].f || scores[current.Pos].f == scores[nodePos].f && scores[nodePos].h > scores[current.Pos].h)
+                    // IF SAME ROUNDED F SCORES THEN PICK ONE WITH LOWEST
+                    (float _, float lowestH, float lowestF) = _scores[current.Pos];
+                    (float _, float newH, float newF) = _scores[nodePos];
+
+                    int roundedLowestF = Mathf.FloorToInt(lowestF);
+                    int roundedNewF = Mathf.FloorToInt(newF);
+
+                    if (roundedNewF < roundedLowestF || roundedNewF == roundedLowestF && newH < lowestH)
                     {
                         current = new Node(_size, nodePos, _obstacles);
                     }
@@ -88,11 +84,7 @@ public class PathFinder
                 return _lastPath;
             }
 
-            if (!_closedList.Contains(current.Pos))
-            {
-                _closedList.Add(current.Pos);
-            }
-
+            _closedList.Add(current.Pos);
             _openList.Remove(current.Pos);
 
             foreach (Node neighbourNode in current.Neighbours)
@@ -102,29 +94,26 @@ public class PathFinder
                     continue;
                 }
 
-                float tempG = scores[current.Pos].g + Vector3.Distance(current.Pos, neighbourNode.Pos);
+                // ROUNDING: BECAUSE MINOR NOT SO IMPORTANT
+                float tempG = _scores[current.Pos].g + 1;
                 float h = Vector3.Distance(neighbourNode.Pos, target.transform.position);
                 float f = tempG + h;
-                 
-                cameFrom[neighbourNode.Pos] = current.Pos;
-
-                if (!scores.ContainsKey(neighbourNode.Pos))
-                {
-                    scores[neighbourNode.Pos] = (tempG, h, f);
-                }
-                else
-                {
-                    if (tempG < scores[neighbourNode.Pos].g && !_openList.Contains(neighbourNode.Pos))
-                    {
-                        scores[neighbourNode.Pos] = (tempG, h, f);
-                        Debug.Log("I AM HERE!");
-                    }
-                }
 
                 if (!_openList.Contains(neighbourNode.Pos) && neighbourNode.IsMovable)
                 {
                     _openList.Add(neighbourNode.Pos);
                 }
+
+                if (!_scores.ContainsKey(neighbourNode.Pos))
+                {
+                    _scores[neighbourNode.Pos] = (tempG, h, f);
+                }
+                else if(tempG >= _scores[neighbourNode.Pos].g)
+                {
+                    continue;
+                }
+
+                cameFrom[neighbourNode.Pos] = current.Pos;
             }
         }
 

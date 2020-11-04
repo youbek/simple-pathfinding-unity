@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class Node
@@ -67,6 +69,19 @@ public class Node
             {
                 return true;
             }
+        }
+    }
+
+    public static void DrawVisual(Vector3 pos, (float g, float h, float f) score, Color color, bool showScoreLabels)
+    {
+        Gizmos.color = color;
+        Gizmos.DrawSphere(pos, 0.1f);
+        Gizmos.color = Color.white;
+
+        if (showScoreLabels)
+        {
+            (float g, float h, float f) = score;
+            Handles.Label(pos, $"G: {g}\nH: {h}\nF: {f}");
         }
     }
 }
