@@ -58,7 +58,7 @@ public class Node
     {
         get
         {
-            Collider[] hits = Physics.OverlapSphere(Pos, Size.x, _obstacles);
+            Collider[] hits = Physics.OverlapSphere(Pos, Size.x * 2, _obstacles);
 
             if (hits.Length > 0)
             {

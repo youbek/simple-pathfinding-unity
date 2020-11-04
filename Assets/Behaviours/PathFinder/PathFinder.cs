@@ -71,15 +71,12 @@ public class PathFinder
 
             if (current != startingNode)
             {
-                float lowestF = scores[current.Pos].f;
-
                 foreach (Vector3 nodePos in _openList)
                 {
-                    float newFScore = scores[nodePos].f;
-
-                    if (newFScore < lowestF)
-                    { 
-                        lowestF = newFScore;
+                    // TRY TO PICK LOWEST F SCORE
+                    // IF SAME F SCORE THEN CHECK PICK ONE WITH LOWEST H
+                    if (scores[nodePos].f < scores[current.Pos].f || scores[current.Pos].f == scores[nodePos].f && scores[nodePos].h > scores[current.Pos].h)
+                    {
                         current = new Node(_size, nodePos, _obstacles);
                     }
                 }
@@ -108,7 +105,7 @@ public class PathFinder
                 float tempG = scores[current.Pos].g + Vector3.Distance(current.Pos, neighbourNode.Pos);
                 float h = Vector3.Distance(neighbourNode.Pos, target.transform.position);
                 float f = tempG + h;
-
+                 
                 cameFrom[neighbourNode.Pos] = current.Pos;
 
                 if (!scores.ContainsKey(neighbourNode.Pos))
@@ -117,9 +114,10 @@ public class PathFinder
                 }
                 else
                 {
-                    if (tempG < scores[neighbourNode.Pos].g)
+                    if (tempG < scores[neighbourNode.Pos].g && !_openList.Contains(neighbourNode.Pos))
                     {
                         scores[neighbourNode.Pos] = (tempG, h, f);
+                        Debug.Log("I AM HERE!");
                     }
                 }
 
