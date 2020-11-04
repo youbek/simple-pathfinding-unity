@@ -24,7 +24,8 @@ public class EnemyMovement : MonoBehaviour
     void Update()
     {
         _pathFinder.GetPaths(transform.position, target);
-        if (Input.GetMouseButtonDown(0))
+
+/*        if (Input.GetMouseButtonDown(0))
         {
             _paths = _pathFinder.GetPaths(transform.position, target);
         }
@@ -41,7 +42,7 @@ public class EnemyMovement : MonoBehaviour
         else
         {
             transform.position = Vector3.MoveTowards(transform.position, _paths[_currentPath], speed * Time.deltaTime);
-        }
+        }*/
     }
 
     private void OnDrawGizmos()
